@@ -62,7 +62,10 @@ function cancelEdit() {
     let comment = $state('');
     let filter = $state<'all' | 'active' | 'completed'>('all');
 	function addTask() {
-		if (!newTask.trim()) return;
+		if (!newTask.trim()) {
+	      alert("Please enter a task");
+	      return;
+         }
 
 		tasks = [
 			...tasks,
@@ -96,6 +99,26 @@ function cancelEdit() {
 	if (filter === 'completed') return tasks.filter(t => t.completed);
 	return tasks;
 });
+
+function isOverdue(date?: string) {
+	if (!date) return false;
+
+	const now = new Date();
+	const today = new Date(
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate()
+	);
+
+	const taskDate = new Date(date);
+	const taskDay = new Date(
+		taskDate.getFullYear(),
+		taskDate.getMonth(),
+		taskDate.getDate()
+	);
+
+	return taskDay < today;
+}
 </script>
 
 <div class="container">
@@ -147,7 +170,7 @@ function cancelEdit() {
 
 	{#if filteredTasks.length === 0}
 		<p class="task-count">
-            {tasks.filter(t => !t.completed).length} tasks found
+            {tasks.filter(t => !t.completed).length} No tasks found
         </p>
 	{/if}
 <p class="task-count">
@@ -164,7 +187,7 @@ function cancelEdit() {
 		{#each filteredTasks as task (task.id)}
 	<li
 		class:done={task.completed }
-		class:overdue={task.dueDate && new Date(task.dueDate) < new Date()}
+		class:overdue={isOverdue(task.dueDate)}
 	>
 		{#if editingId === task.id}
 			<!-- ✏️ EDIT MODE -->
@@ -193,6 +216,10 @@ function cancelEdit() {
 
 			<div class="task-content">
 				<span>{task.text}</span>
+
+				{#if isOverdue(task.dueDate) }
+				<small class="date text-500">⚠ Overdue</small>
+				{/if}
 
 				{#if task.dueDate}
 					<small class="date">
@@ -277,6 +304,14 @@ function cancelEdit() {
 	background: transparent;
 	color: red;
 	font-size: 16px;
+}
+
+li button:first-of-type {
+	color: #333; /* edit */
+}
+
+li button:last-of-type {
+	color: red; /* delete */
 }
 
 span {
